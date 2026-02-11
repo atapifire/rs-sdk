@@ -1227,3 +1227,10 @@ export class BotSDK {
 
 // Re-export types for convenience
 export * from './types';
+
+// Re-export task context and state diff utilities
+export { TaskContext, createTaskContext, type TaskContextOptions, type TaskProgress, type TaskStatus, type CheckpointResult } from './task-context';
+export { computeStateDiff, formatStateDiff, type StateDiff } from './state-diff';
+
+// Re-export common patterns for supervised execution
+export { loop, gatherUntilFull, trainUntilLevel, combatLoop, bankRoutine } from './patterns';

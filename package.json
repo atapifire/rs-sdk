@@ -9,6 +9,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.5.3"
+    "@inquirer/prompts": "^7.5.3",
+    "puppeteer": "^24.36.1"
   }
 }
