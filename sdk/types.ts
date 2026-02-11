@@ -212,6 +212,55 @@ export interface CombatEvent {
     targetIndex: number;
 }
 
+// ============ Prayer Types ============
+
+export type PrayerName =
+    | 'thick_skin' | 'burst_of_strength' | 'clarity_of_thought'
+    | 'rock_skin' | 'superhuman_strength' | 'improved_reflexes'
+    | 'rapid_restore' | 'rapid_heal' | 'protect_items'
+    | 'steel_skin' | 'ultimate_strength' | 'incredible_reflexes'
+    | 'protect_from_magic' | 'protect_from_missiles' | 'protect_from_melee';
+
+export const PRAYER_NAMES: PrayerName[] = [
+    'thick_skin', 'burst_of_strength', 'clarity_of_thought',
+    'rock_skin', 'superhuman_strength', 'improved_reflexes',
+    'rapid_restore', 'rapid_heal', 'protect_items',
+    'steel_skin', 'ultimate_strength', 'incredible_reflexes',
+    'protect_from_magic', 'protect_from_missiles', 'protect_from_melee',
+];
+
+export const PRAYER_INDICES: Record<PrayerName, number> = {
+    'thick_skin': 0, 'burst_of_strength': 1, 'clarity_of_thought': 2,
+    'rock_skin': 3, 'superhuman_strength': 4, 'improved_reflexes': 5,
+    'rapid_restore': 6, 'rapid_heal': 7, 'protect_items': 8,
+    'steel_skin': 9, 'ultimate_strength': 10, 'incredible_reflexes': 11,
+    'protect_from_magic': 12, 'protect_from_missiles': 13, 'protect_from_melee': 14,
+};
+
+/** Required prayer level for each prayer (indexed 0-14) */
+export const PRAYER_LEVELS: number[] = [
+    1, 4, 7,    // thick_skin, burst_of_strength, clarity_of_thought
+    10, 13, 16, // rock_skin, superhuman_strength, improved_reflexes
+    19, 22, 25, // rapid_restore, rapid_heal, protect_items
+    28, 31, 34, // steel_skin, ultimate_strength, incredible_reflexes
+    37, 40, 43, // protect_from_magic, protect_from_missiles, protect_from_melee
+];
+
+export interface PrayerState {
+    /** Active state of each prayer (indexed 0-14, matching PRAYER_NAMES order) */
+    activePrayers: boolean[];
+    /** Current prayer points (current skill level - drains while prayers active) */
+    prayerPoints: number;
+    /** Base prayer level */
+    prayerLevel: number;
+}
+
+export interface PrayerResult {
+    success: boolean;
+    message: string;
+    reason?: 'invalid_prayer' | 'no_prayer_points' | 'level_too_low' | 'already_active' | 'already_inactive' | 'timeout';
+}
+
 export interface BotWorldState {
     tick: number;
     inGame: boolean;
@@ -233,6 +282,7 @@ export interface BotWorldState {
     modalInterface: number;
     combatStyle?: CombatStyleState;
     combatEvents: CombatEvent[];
+    prayers: PrayerState;
 }
 
 // ============ Action Types ============
@@ -246,7 +296,7 @@ export type BotAction =
     // clickComponent: IF_BUTTON packet - for simple buttons, spellcasting, etc.
     | { type: 'clickComponent'; componentId: number; reason: string }
     // clickComponentWithOption: INV_BUTTON packet - for components with inventory operations (smithing, crafting, etc.)
-    | { type: 'clickComponentWithOption'; componentId: number; optionIndex: number; reason: string }
+    | { type: 'clickComponentWithOption'; componentId: number; optionIndex: number; slot?: number; reason: string }
     // TODO: acceptCharacterDesign should be parameterized as (gender, kits[7], colours[5])
     // Currently uses hidden client state - the SDK cannot set design values before accepting.
     // For now, bot client uses whatever design state exists (usually defaults or randomized).
@@ -267,6 +317,7 @@ export type BotAction =
     | { type: 'setCombatStyle'; style: number; reason: string }
     | { type: 'useItemOnItem'; sourceSlot: number; targetSlot: number; reason: string }
     | { type: 'useItemOnLoc'; itemSlot: number; x: number; z: number; locId: number; reason: string }
+    | { type: 'useItemOnNpc'; itemSlot: number; npcIndex: number; reason: string }
     | { type: 'say'; message: string; reason: string }
     | { type: 'spellOnNpc'; npcIndex: number; spellComponent: number; reason: string }
     | { type: 'spellOnItem'; slot: number; spellComponent: number; reason: string }
@@ -274,7 +325,8 @@ export type BotAction =
     | { type: 'bankDeposit'; slot: number; amount: number; reason: string }
     | { type: 'bankWithdraw'; slot: number; amount: number; reason: string }
     | { type: 'scanNearbyLocs'; radius?: number; reason: string }
-    | { type: 'scanGroundItems'; radius?: number; reason: string };
+    | { type: 'scanGroundItems'; radius?: number; reason: string }
+    | { type: 'togglePrayer'; prayerIndex: number; reason: string };
 
 export interface ActionResult {
     success: boolean;
@@ -468,11 +520,36 @@ export interface BankWithdrawResult {
     success: boolean;
     message: string;
     item?: InventoryItem;
-    reason?: 'bank_not_open' | 'timeout';
+    reason?: 'bank_not_open' | 'item_not_found' | 'timeout';
 }
 
 export interface UseItemOnLocResult {
     success: boolean;
     message: string;
     reason?: 'item_not_found' | 'loc_not_found' | 'cant_reach' | 'timeout';
+}
+
+export interface UseItemOnNpcResult {
+    success: boolean;
+    message: string;
+    reason?: 'item_not_found' | 'npc_not_found' | 'cant_reach' | 'timeout';
+}
+
+export interface InteractLocResult {
+    success: boolean;
+    message: string;
+    reason?: 'loc_not_found' | 'no_matching_option' | 'cant_reach' | 'timeout';
+}
+
+export interface InteractNpcResult {
+    success: boolean;
+    message: string;
+    reason?: 'npc_not_found' | 'no_matching_option' | 'cant_reach' | 'timeout';
+}
+
+export interface PickpocketResult {
+    success: boolean;
+    message: string;
+    xpGained?: number;
+    reason?: 'npc_not_found' | 'no_pickpocket_option' | 'cant_reach' | 'stunned' | 'timeout';
 }

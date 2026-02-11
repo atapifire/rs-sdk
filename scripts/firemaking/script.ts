@@ -16,8 +16,8 @@
  */
 
 import { runScript, type ScriptContext } from '../../sdk/runner';
-import { generateSave, TestPresets } from '../../test/utils/save-generator';
-import { launchBotWithSDK } from '../../test/utils/browser';
+import { generateSave, TestPresets } from '../../sdk/test/utils/save-generator';
+import { launchBotWithSDK } from '../../sdk/test/utils/browser';
 import type { NearbyLoc, InventoryItem } from '../../sdk/types';
 
 // Lumbridge tree locations (near castle)

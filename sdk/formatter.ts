@@ -2,6 +2,7 @@
 // Adapted from webclient/src/bot/formatters.ts for SDK use
 
 import type { BotWorldState, SkillState } from './types';
+import { PRAYER_NAMES } from './types';
 
 /**
  * Format a duration in ms to human readable string
@@ -175,6 +176,19 @@ export function formatWorldState(state: BotWorldState, stateAgeMs?: number): str
         const current = state.combatStyle.styles[state.combatStyle.currentStyle];
         if (current) {
             lines.push(`Style: ${current.name} (${current.type}) - trains ${current.trainedSkill}`);
+        }
+    }
+
+    // Prayers
+    if (state.prayers) {
+        const activePrayers = state.prayers.activePrayers
+            .map((active, i) => active ? PRAYER_NAMES[i] : null)
+            .filter((name): name is string => name !== null);
+        if (activePrayers.length > 0) {
+            lines.push('');
+            lines.push('## Active Prayers');
+            lines.push(`Points: ${state.prayers.prayerPoints}/${state.prayers.prayerLevel}`);
+            lines.push(`Active: ${activePrayers.join(', ')}`);
         }
     }
 

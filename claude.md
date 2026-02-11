@@ -211,6 +211,58 @@ For the complete method reference, see **[sdk/API.md](sdk/API.md)** (auto-genera
 - `bot.*` - High-level actions that wait for effects to complete (chopTree, walkTo, attackNpc, etc.)
 - `sdk.*` - Low-level methods that resolve on server acknowledgment (sendWalk, getState, findNearbyNpc, etc.)
 
+### bot.* Quick Reference
+
+| Method | What it does |
+|--------|-------------|
+| `walkTo(x, z, tolerance?)` | Pathfind to coords, opens doors along the way |
+| `talkTo(target)` | Walk to NPC, start dialog |
+| `interactNpc(target, option?)` | Walk to NPC, interact with any option (e.g. `'trade'`, `'fish'`) |
+| `interactLoc(target, option?)` | Walk to loc, interact with any option (e.g. `'mine'`, `'smelt'`) |
+| `attackNpc(target)` | Walk to NPC, start combat |
+| `pickpocketNpc(target)` | Pickpocket NPC, detects XP gain vs stun |
+| `castSpellOnNpc(target, spell)` | Cast combat spell on NPC |
+| `chopTree(target?)` | Chop tree, wait for logs |
+| `pickupItem(target)` | Pick up ground item |
+| `openDoor(target?)` | Open a door or gate |
+| `openBank()` | Open nearest bank |
+| `depositItem(target, amount?)` | Deposit item to bank |
+| `withdrawItem(slot, amount?)` | Withdraw item from bank |
+| `openShop(target?)` | Open shop via shopkeeper NPC |
+| `buyFromShop(target, amount?)` | Buy item from open shop |
+| `sellToShop(target, amount?)` | Sell item to open shop |
+| `equipItem(target)` | Equip from inventory |
+| `unequipItem(target)` | Unequip to inventory |
+| `eatFood(target)` | Eat food, returns HP gained |
+| `useItemOnLoc(item, loc)` | Use inventory item on loc (e.g. fish on range) |
+| `useItemOnNpc(item, npc)` | Use inventory item on NPC |
+| `burnLogs(target?)` | Light logs with tinderbox |
+| `fletchLogs(product?)` | Fletch logs with knife |
+| `craftLeather(product?)` | Craft leather with needle |
+| `smithAtAnvil(product)` | Smith bars at anvil |
+| `dismissBlockingUI()` | Dismiss level-up dialogs (call in every loop) |
+| `navigateDialog(choices)` | Auto-click through dialog options |
+| `skipTutorial()` | Skip the tutorial island |
+
+### sdk.* Commonly Used Directly
+
+| Method | What it does |
+|--------|-------------|
+| `getState()` | Full world state snapshot |
+| `getSkill(name)` / `getSkillXp(name)` | Skill info |
+| `getInventory()` / `findInventoryItem(pattern)` | Inventory queries |
+| `findNearbyNpc(pattern)` / `findNearbyLoc(pattern)` | Find nearby entities |
+| `findGroundItem(pattern)` | Find ground items |
+| `getDialog()` | Current dialog state |
+| `sendClickDialog(option)` | Click dialog option |
+| `sendClickComponent(id)` | Click interface button |
+| `sendDropItem(slot)` | Drop inventory item |
+| `sendUseItem(slot)` | Use inventory item (bury, etc.) |
+| `sendUseItemOnItem(src, dst)` | Combine two items |
+| `sendSay(message)` | Send chat message |
+| `waitForCondition(pred)` | Wait for state predicate |
+| `waitForTicks(n)` | Wait n game ticks |
+| `scanNearbyLocs(radius?)` | Extended-range loc scan |
 
 ---
 
@@ -239,6 +291,7 @@ if (!result.success) {
 ## Project Structure
 
 ```
+
 bots/
 └── {username}/
     ├── bot.env        # Credentials (BOT_USERNAME, PASSWORD, SERVER)

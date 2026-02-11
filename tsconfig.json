@@ -26,6 +26,6 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["*.ts", "gateway/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "bot_arcs/**/*.ts", "sdk/**/*.ts"],
-  "exclude": ["engine", "webclient", "node_modules"]
+  "include": ["*.ts", "server/gateway/**/*.ts", "scripts/**/*.ts", "bot_arcs/**/*.ts", "sdk/**/*.ts"],
+  "exclude": ["server/engine", "server/webclient", "node_modules"]
 }

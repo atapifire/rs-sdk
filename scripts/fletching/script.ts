@@ -17,8 +17,8 @@
  */
 
 import { runScript, type ScriptContext } from '../../sdk/runner';
-import { generateSave, TestPresets } from '../../test/utils/save-generator';
-import { launchBotWithSDK } from '../../test/utils/browser';
+import { generateSave, TestPresets } from '../../sdk/test/utils/save-generator';
+import { launchBotWithSDK } from '../../sdk/test/utils/browser';
 
 // Locations
 const KNIFE_SPAWN = { x: 3224, z: 3202 }; // SE of Lumbridge castle (actual spawn location)

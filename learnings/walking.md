@@ -131,6 +131,9 @@ await ctx.bot.walkTo(3092, 3243);  // May path through (3220, 3220)
 | SE Varrock mine | (3285, 3365) |
 | Lumbridge general store | (3212, 3247) |
 | Lumbridge castle (thieving) | (3222, 3218) |
+| Falador center | (2951, 3380) |
+| Falador north gate (to Taverley and wester side of map) | ~(2935, 3460) | 
+| Taverley (stone circle) | (2935, 3479) |
 
 ### Al Kharid Coordinates
 

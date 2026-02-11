@@ -19,8 +19,8 @@
  */
 
 import { runScript, type ScriptContext } from '../../sdk/runner';
-import { generateSave, TestPresets } from '../../test/utils/save-generator';
-import { launchBotWithSDK } from '../../test/utils/browser';
+import { generateSave, TestPresets } from '../../sdk/test/utils/save-generator';
+import { launchBotWithSDK } from '../../sdk/test/utils/browser';
 
 // Gnome Stronghold Agility Course start location
 const GNOME_AGILITY_START = { x: 2474, z: 3436 };

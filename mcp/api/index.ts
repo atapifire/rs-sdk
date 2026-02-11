@@ -12,6 +12,7 @@ export interface BotConnection {
   bot: BotActions;
   username: string;
   connected: boolean;
+  unsubscribeConnectionState?: () => void;
 }
 
 class BotManager {
@@ -99,7 +100,7 @@ class BotManager {
     };
 
     // Track connection state changes
-    sdk.onConnectionStateChange((state) => {
+    connection.unsubscribeConnectionState = sdk.onConnectionStateChange((state) => {
       const wasConnected = connection.connected;
       connection.connected = state === 'connected';
       if (wasConnected && !connection.connected) {
@@ -114,11 +115,16 @@ class BotManager {
   }
 
   private async connectWithTimeout(sdk: BotSDK, timeoutMs: number): Promise<void> {
+    let timeoutId: ReturnType<typeof setTimeout>;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error(`Connection timed out after ${timeoutMs / 1000}s`)), timeoutMs);
+      timeoutId = setTimeout(() => reject(new Error(`Connection timed out after ${timeoutMs / 1000}s`)), timeoutMs);
     });
 
-    await Promise.race([sdk.connect(), timeoutPromise]);
+    try {
+      await Promise.race([sdk.connect(), timeoutPromise]);
+    } finally {
+      clearTimeout(timeoutId!);
+    }
   }
 
   /**
@@ -131,6 +137,9 @@ class BotManager {
     }
 
     console.error(`[MCP] Disconnecting bot "${name}"...`);
+    if (connection.unsubscribeConnectionState) {
+      connection.unsubscribeConnectionState();
+    }
     connection.sdk.disconnect();
     connection.connected = false;
     this.connections.delete(name);

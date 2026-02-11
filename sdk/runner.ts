@@ -318,6 +318,21 @@ export async function runScript(
         error: capturedError
     };
 
+    // Clean exit on signals - prevents orphaned processes when parent shell is killed
+    let signalReceived = false;
+    const signalCleanup = (signal: string) => {
+        if (signalReceived) return; // Prevent double-cleanup
+        signalReceived = true;
+        console.error(`[Runner] Received ${signal} - disconnecting and exiting...`);
+        sdk.disconnect().finally(() => process.exit(0));
+    };
+    const onSigterm = () => signalCleanup('SIGTERM');
+    const onSigint = () => signalCleanup('SIGINT');
+    const onSighup = () => signalCleanup('SIGHUP');
+    process.on('SIGTERM', onSigterm);
+    process.on('SIGINT', onSigint);
+    process.on('SIGHUP', onSighup);
+
     // Execute script with connection monitoring
     let result: any;
     let error: Error | undefined;
@@ -386,6 +401,10 @@ export async function runScript(
         if (unsubscribeConnection) {
             unsubscribeConnection();
         }
+        // Remove signal handlers
+        process.off('SIGTERM', onSigterm);
+        process.off('SIGINT', onSigint);
+        process.off('SIGHUP', onSighup);
     }
 
     // Flush any remaining pending log

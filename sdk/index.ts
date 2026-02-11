@@ -16,8 +16,11 @@ import type {
     SDKConfig,
     ConnectionState,
     SDKConnectionMode,
-    BotStatus
+    BotStatus,
+    PrayerState,
+    PrayerName
 } from './types';
+import { PRAYER_INDICES, PRAYER_NAMES } from './types';
 import * as pathfinding from './pathfinding';
 
 interface SyncToSDKMessage {
@@ -801,6 +804,11 @@ export class BotSDK {
         return this.sendAction({ type: 'useItemOnLoc', itemSlot, x, z, locId, reason: 'SDK' });
     }
 
+    /** Use an inventory item on an NPC. */
+    async sendUseItemOnNpc(itemSlot: number, npcIndex: number): Promise<ActionResult> {
+        return this.sendAction({ type: 'useItemOnNpc', itemSlot, npcIndex, reason: 'SDK' });
+    }
+
     /** Click a dialog option by index. */
     async sendClickDialog(option: number = 0): Promise<ActionResult> {
         return this.sendAction({ type: 'clickDialogOption', optionIndex: option, reason: 'SDK' });
@@ -812,8 +820,8 @@ export class BotSDK {
     }
 
     /** Click a component using INV_BUTTON packet - for components with inventory operations (smithing, crafting, etc.) */
-    async sendClickComponentWithOption(componentId: number, optionIndex: number = 1): Promise<ActionResult> {
-        return this.sendAction({ type: 'clickComponentWithOption', componentId, optionIndex, reason: 'SDK' });
+    async sendClickComponentWithOption(componentId: number, optionIndex: number = 1, slot: number = 0): Promise<ActionResult> {
+        return this.sendAction({ type: 'clickComponentWithOption', componentId, optionIndex, slot, reason: 'SDK' });
     }
 
     /** Click an interface option by index. Convenience wrapper that looks up componentId from state. */
@@ -869,6 +877,40 @@ export class BotSDK {
     /** Set combat style (0-3). */
     async sendSetCombatStyle(style: number): Promise<ActionResult> {
         return this.sendAction({ type: 'setCombatStyle', style, reason: 'SDK' });
+    }
+
+    // ============ Prayer ============
+
+    /** Toggle a prayer on or off by name or index (0-14). */
+    async sendTogglePrayer(prayer: PrayerName | number): Promise<ActionResult> {
+        const index = typeof prayer === 'number' ? prayer : PRAYER_INDICES[prayer];
+        if (index === undefined || index < 0 || index > 14) {
+            return { success: false, message: `Invalid prayer: ${prayer}` };
+        }
+        return this.sendAction({ type: 'togglePrayer', prayerIndex: index, reason: 'SDK' });
+    }
+
+    /** Get current prayer state from world state. */
+    getPrayerState(): PrayerState | null {
+        return this.state?.prayers || null;
+    }
+
+    /** Check if a specific prayer is currently active. */
+    isPrayerActive(prayer: PrayerName | number): boolean {
+        const prayerState = this.state?.prayers;
+        if (!prayerState) return false;
+        const index = typeof prayer === 'number' ? prayer : PRAYER_INDICES[prayer];
+        if (index === undefined || index < 0 || index >= prayerState.activePrayers.length) return false;
+        return prayerState.activePrayers[index];
+    }
+
+    /** Get list of all currently active prayer names. */
+    getActivePrayers(): PrayerName[] {
+        const prayerState = this.state?.prayers;
+        if (!prayerState) return [];
+        return prayerState.activePrayers
+            .map((active, i) => active ? PRAYER_NAMES[i] : null)
+            .filter((name): name is PrayerName => name !== null);
     }
 
     /** Cast spell on NPC using spell component ID. */
@@ -1075,7 +1117,7 @@ export class BotSDK {
     }
 
     /**
-     * Wait for a specific number of server ticks (~420ms each).
+     * Wait for a specific number of server ticks (~300ms each).
      *
      * @param ticks - Number of server ticks to wait
      * @returns The state after waiting
@@ -1093,7 +1135,7 @@ export class BotSDK {
         const targetTick = startTick + ticks;
 
         return new Promise((resolve, reject) => {
-            // Safety timeout: ticks * 1s + 5s buffer (server tick is ~420ms, so 1s is generous)
+            // Safety timeout: ticks * 1s + 5s buffer (server tick is ~300ms, so 1s is generous)
             const safetyTimeout = setTimeout(() => {
                 unsubscribe();
                 reject(new Error(`waitForTicks(${ticks}) safety timeout - no state updates received`));
@@ -1113,7 +1155,7 @@ export class BotSDK {
      * Wait for the next state update from the server.
      * This is the most common waiting pattern - ensures fresh data after an action.
      *
-     * State updates arrive once per server tick (~420ms) when PLAYER_INFO is received.
+     * State updates arrive once per server tick (~300ms) when PLAYER_INFO is received.
      *
      * @example
      * ```ts

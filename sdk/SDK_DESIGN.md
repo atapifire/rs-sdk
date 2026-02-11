@@ -165,5 +165,5 @@ if (state.dialog.isOpen && (state.tick - lastClick) >= 3) {
 | `sdk/actions.ts` | BotActions - high-level domain actions |
 | `sdk/types.ts` | Type definitions |
 | `sdk/pathfinding.ts` | Pathfinding utilities |
-| `gateway/gateway.ts` | Gateway - routing, sessions |
-| `webclient/src/bot/BotSDK.ts` | Bot Client - pure executor |
+| `server/gateway/gateway.ts` | Gateway - routing, sessions |
+| `server/webclient/src/bot/BotSDK.ts` | Bot Client - pure executor |

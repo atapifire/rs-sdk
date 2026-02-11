@@ -9,6 +9,10 @@ public-client/
 server.json
 .env
 
+# Nix
+result
+.direnv/
+
 # Bot folders (except template)
 bots/*/
 !bots/_template/

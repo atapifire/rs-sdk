@@ -5,7 +5,7 @@
  * Usage: bun scripts/close-browser.ts
  */
 
-import { closeSharedBrowser } from '../test/utils/browser';
+import { closeSharedBrowser } from '../sdk/test/utils/browser';
 
 closeSharedBrowser()
     .then(() => {

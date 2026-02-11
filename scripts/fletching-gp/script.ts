@@ -7,8 +7,8 @@
  */
 
 import { runScript, type ScriptContext } from '../../sdk/runner';
-import { generateSave, TestPresets, Items, Locations } from '../../test/utils/save-generator';
-import { launchBotWithSDK } from '../../test/utils/browser';
+import { generateSave, TestPresets, Items, Locations } from '../../sdk/test/utils/save-generator';
+import { launchBotWithSDK } from '../../sdk/test/utils/browser';
 
 // Locations
 const NORMAL_TREES_AREA = { x: 3200, z: 3230 };

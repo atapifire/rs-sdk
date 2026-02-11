@@ -15,8 +15,8 @@
  */
 
 import { runScript, type ScriptContext } from '../../sdk/runner';
-import { generateSave, TestPresets } from '../../test/utils/save-generator';
-import { launchBotWithSDK } from '../../test/utils/browser';
+import { generateSave, TestPresets } from '../../sdk/test/utils/save-generator';
+import { launchBotWithSDK } from '../../sdk/test/utils/browser';
 
 // SE Varrock mine - has copper and tin, no aggressive monsters
 const TARGET_MINE = { x: 3285, z: 3365 };

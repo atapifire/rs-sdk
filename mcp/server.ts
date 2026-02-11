@@ -111,6 +111,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             code: {
               type: 'string',
               description: 'TypeScript code to execute. Available globals: bot (BotActions), sdk (BotSDK). Example: "await bot.chopTree(); return sdk.getState();"'
+            },
+            timeout: {
+              type: 'number',
+              description: 'Execution timeout in minutes (default: 2, max: 60)'
             }
           },
           required: ['bot_name', 'code']
@@ -263,7 +267,7 @@ return ctx.getStateDiffFromStart();
 });
 
 // Handle tool calls
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
   const { name, arguments: args } = request.params;
 
   try {
@@ -319,12 +323,60 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // Don't capture console.error - let it go to stderr for MCP debugging
 
         try {
-          // Create async function with bot and sdk as parameters
           const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
           const fn = new AsyncFunction('bot', 'sdk', code);
 
-          // Execute code
-          const result = await fn(connection.bot, connection.sdk);
+          // Execute code with configurable timeout + MCP cancellation signal
+          const timeoutMinutes = Math.min(Math.max((args?.timeout as number) || 2, 0.1), 60);
+          const EXECUTION_TIMEOUT = timeoutMinutes * 60 * 1000;
+          let timeoutId: ReturnType<typeof setTimeout>;
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error(`Code execution timed out after ${timeoutMinutes} minute(s)`)), EXECUTION_TIMEOUT);
+          });
+
+          // AbortController that fires on MCP cancellation
+          const abortController = new AbortController();
+          const signal = abortController.signal;
+
+          if (extra.signal) {
+            if (extra.signal.aborted) {
+              abortController.abort(extra.signal.reason);
+            } else {
+              extra.signal.addEventListener('abort', () => {
+                console.error(`[MCP] execute_code cancelled by client for bot "${botName}"`);
+                abortController.abort('Cancelled by client');
+              }, { once: true });
+            }
+          }
+
+          const cancelPromise = new Promise<never>((_, reject) => {
+            signal.addEventListener('abort', () => {
+              reject(new Error(typeof signal.reason === 'string' ? signal.reason : 'Code execution cancelled'));
+            }, { once: true });
+          });
+
+          // Wrap bot and sdk in proxies that throw on every method call once cancelled
+          const cancellable = <T extends object>(target: T): T =>
+            new Proxy(target, {
+              get(obj, prop, receiver) {
+                const value = Reflect.get(obj, prop, receiver);
+                if (typeof value === 'function') {
+                  return (...args: any[]) => {
+                    if (signal.aborted) throw new Error('Execution cancelled');
+                    return value.apply(obj, args);
+                  };
+                }
+                return value;
+              }
+            });
+
+          let result: any;
+          try {
+            result = await Promise.race([fn(cancellable(connection.bot), cancellable(connection.sdk)), timeoutPromise, cancelPromise]);
+          } finally {
+            clearTimeout(timeoutId!);
+            if (!signal.aborted) abortController.abort('Execution finished');
+          }
 
           // Build formatted output
           const parts: string[] = [];

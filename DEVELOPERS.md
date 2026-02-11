@@ -13,13 +13,13 @@ but if you want to develop deeper changes to the stack or host your own server, 
 | Directory | Description |
 |-----------|-------------|
 | `sdk/` | BotSDK library for writing automation scripts |
-| `engine/` | Game server - handles world state, players, NPCs, game logic |
-| `content/` | Game assets - maps, models, scripts, sprites, music |
-| `webclient/` | TypeScript web client with BotSDK for automation |
-| `test/` | Test scripts for bot automation and shop interactions |
-| `gateway/` | WebSocket relay for bot clients to connect to SDK agents |
+| `sdk/test/` | Test scripts for bot automation and shop interactions |
+| `server/engine/` | Game server - handles world state, players, NPCs, game logic |
+| `server/content/` | Game assets - maps, models, scripts, sprites, music |
+| `server/webclient/` | TypeScript web client with BotSDK for automation |
+| `server/gateway/` | WebSocket relay for bot clients to connect to SDK agents |
 
-### Engine (`engine/`)
+### Engine (`server/engine/`)
 
 The game server handling world simulation, player logic, and network protocol.
 
@@ -35,7 +35,7 @@ engine/
 └── tools/         # Build and pack tools
 ```
 
-### WebClient (`webclient/`)
+### WebClient (`server/webclient/`)
 
 Browser-based game client ported to TypeScript.
 
@@ -50,7 +50,7 @@ webclient/
 └── 3rdparty/      # Third-party dependencies
 ```
 
-### Gateway (`gateway/`)
+### Gateway (`server/gateway/`)
 
 WebSocket relay service connecting browser game clients to SDK automation scripts.
 
@@ -71,7 +71,7 @@ gateway/
 |---------|-------------|
 | `./start.sh` | Interactive menu (Linux/macOS) |
 | `start.bat` | Interactive menu (Windows) |
-| `bun run start.ts` | Run interactive menu directly |
+| `bun run server/start.ts` | Run interactive menu directly |
 
 The interactive menu provides options to:
 - Start the game server
@@ -80,7 +80,7 @@ The interactive menu provides options to:
 - Build clients
 - Change game version (225, 244, 245.2, 254)
 
-### Engine (`cd engine`)
+### Engine (`cd server/engine`)
 
 | Command | Description |
 |---------|-------------|
@@ -100,7 +100,7 @@ The interactive menu provides options to:
 | `bun run db:migrate` | Apply MySQL migrations |
 | `bun run db:reset` | Reset MySQL database |
 
-### WebClient (`cd webclient`)
+### WebClient (`cd server/webclient`)
 
 | Command | Description |
 |---------|-------------|
@@ -109,8 +109,8 @@ The interactive menu provides options to:
 
 After building, copy to engine:
 ```sh
-cp out/standard/client.js ../engine/public/client/
-cp out/bot/client.js ../engine/public/bot/
+cp out/standard/client.js ../engine/public/client/client.js
+cp out/bot/client.js ../engine/public/bot/client.js
 ```
 
 ### Agent (`cd agent`)
@@ -141,12 +141,12 @@ cp out/bot/client.js ../engine/public/bot/
 
 ### Content Development
 ```sh
-cd engine && bun start
+cd server/engine && bun start
 # Server watches for script/config changes and auto-repacks
 ```
 
 ### Engine Development
 ```sh
-cd engine && bun run dev
+cd server/engine && bun run dev
 # Server restarts on .ts file changes
 ```

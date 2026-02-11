@@ -3,17 +3,17 @@
 Research-oriented starter kit for runescape-style bots, including a typescript sdk, agent documentation and bindings, and a server emulator. Works out of the box - tell it what to automate! 
 
 <div align="center">
-    <img src="content/title/promo.gif" alt="RS-SDK Demo" width="800">
+    <img src="server/content/title/promo.gif" alt="RS-SDK Demo" width="800">
 </div>
 
-[![Discord](content/title/discord.svg)](https://discord.gg/3DcuU5cMJN)
-[![Hiscores](content/title/hiscores.svg)](https://rs-sdk-demo.fly.dev/hiscores)
+[![Discord](server/content/title/discord.svg)](https://discord.gg/3DcuU5cMJN)
+[![Hiscores](server/content/title/hiscores.svg)](https://rs-sdk-demo.fly.dev/hiscores)
 
 Build and operate bots within a complex economic role-playing MMO. You can automate the game, level an account to all 99s, and experiment with agentic development techniques within a safe, bot-only setting.
 
 The goals of this project are to provide a rich testing environment for goal-directed program synthesis techniques (Ralph loops, etc), and to facilitate research into collaboration and competition between agents.
 
-![Task Length Distribution](content/title/task_length.svg)
+![Task Length Distribution](server/content/title/task_length.svg)
 
 There is currently a [leaderboard](https://rs-sdk-demo.fly.dev/hiscores) for bots running on the demo server, with rankings based on highest total level per lowest account playtime.
 
@@ -67,18 +67,47 @@ This means that the SDK can't talk directly to the game server, but must go thro
 You don't need to run the gateway/botclient in order to run automations against the demo server, but you may choose to if you are fixing bugs or adding features to the rs-sdk project
 
 
-## Running the server locally:
-You want all these running: 
-```sh 
-cd engine && bun run start
+## Running the server locally
+
+Running the server locally has many advantages, primary being the ability to set a high tickrate. 
+
+You can set tickrate in `server/engine/.env` via the `TICK_RATE` variable (default is 600ms, try 200ms or 30ms for faster gameplay, especially useful for headless testing).
+
+You want all three of these running: 
+
+```sh
+# Game engine
+cd server/engine && bun run start
 ```
-```sh 
-cd webclient && bun run watch
+```sh
+# Web client bundler
+cd server/webclient && bun run watch
 ```
-```sh 
-cd gateway && bun run gateway
+```sh
+# Gateway (bridges SDK <-> bot client)
+cd server/gateway && bun run gateway
 ```
-There is also a login server which you may not need, I forget
+
+The gateway listens on `ws://localhost:7780` by default (configurable via `AGENT_PORT` env var).
+
+
+### 2. Connect a bot to the local gateway
+
+The `SERVER` variable in `bot.env` controls where the bot connects. To use your local gateway, **leave `SERVER` blank**:
+
+```bots/<botname>/bot.env
+BOT_USERNAME=mybot
+PASSWORD=test
+SERVER=
+SHOW_CHAT=false
+```
+
+When `SERVER` is empty, all connection paths (scripts, CLI, MCP) default to `ws://localhost:7780`.
+
+When `SERVER` is set to a hostname (e.g. `rs-sdk-demo.fly.dev`), they connect to `wss://{SERVER}/gateway` instead.
+
+
+
 ## Disclaimer
 
 This is a free, open-source, community-run project.

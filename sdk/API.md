@@ -63,7 +63,7 @@ These methods wait for the **effect to complete**, not just server acknowledgmen
 |--------|-------------|
 | `closeShop(timeout)` | Close the shop interface. |
 | `openShop(target)` | Open a shop by trading with an NPC. |
-| `buyFromShop(target, amount)` | Buy an item from an open shop. |
+| `buyFromShop(target, amount)` | Buy an item from an open shop . |
 | `sellToShop(target, amount)` | Sell an item to an open shop. |
 
 ### Banking
@@ -73,7 +73,7 @@ These methods wait for the **effect to complete**, not just server acknowledgmen
 | `openBank(timeout)` | Open a bank booth or talk to a banker. |
 | `closeBank(timeout)` | Close the bank interface. |
 | `depositItem(target, amount)` | Deposit an item into the bank. |
-| `withdrawItem(bankSlot, amount)` | Withdraw an item from the bank by slot number. |
+| `withdrawItem(target, amount)` | Withdraw an item from the bank by slot number. |
 
 ### Crafting & Smithing
 
@@ -95,6 +95,12 @@ These methods wait for the **effect to complete**, not just server acknowledgmen
 | Method | Description |
 |--------|-------------|
 | `useItemOnLoc(item, loc, options)` | Use an inventory item on a nearby location (e. |
+| `useItemOnNpc(item, npc, options)` | Use an inventory item on a nearby NPC (e. |
+| `interactLoc(target, option)` | Interact with a nearby location object (rock, fishing spot, furnace, etc. |
+| `interactNpc(target, option)` | Interact with a nearby NPC using a specified option (e. |
+| `pickpocketNpc(target)` | Pickpocket an NPC. |
+| `activatePrayer(prayer)` | Activate a prayer by name or index. |
+| `deactivatePrayer(prayer)` | Deactivate a prayer by name or index. |
 
 ---
 
@@ -143,13 +149,15 @@ These methods resolve when server **acknowledges** them (not when effects comple
 | `sendDropItem(slot)` | Drop an inventory item. |
 | `sendUseItemOnItem(sourceSlot, targetSlot)` | Use one inventory item on another. |
 | `sendUseItemOnLoc(itemSlot, x, z, locId)` | Use an inventory item on a location. |
+| `sendUseItemOnNpc(itemSlot, npcIndex)` | Use an inventory item on an NPC. |
 | `sendClickDialog(option)` | Click a dialog option by index. |
 | `sendClickComponent(componentId)` | Click a component using IF_BUTTON packet - for simple buttons, spellcasting, etc. |
-| `sendClickComponentWithOption(componentId, optionIndex)` | Click a component using INV_BUTTON packet - for components with inventory operations (smithing, c... |
+| `sendClickComponentWithOption(componentId, optionIndex, slot)` | Click a component using INV_BUTTON packet - for components with inventory operations (smithing, c... |
 | `sendClickInterfaceOption(optionIndex)` | Click an interface option by index. |
 | `sendShopBuy(slot, amount)` | Buy from shop by slot and amount. |
 | `sendShopSell(slot, amount)` | Sell to shop by slot and amount. |
 | `sendSetCombatStyle(style)` | Set combat style (0-3). |
+| `sendTogglePrayer(prayer)` | Toggle a prayer on or off by name or index (0-14). |
 | `sendSpellOnNpc(npcIndex, spellComponent)` | Cast spell on NPC using spell component ID. |
 | `sendSpellOnItem(slot, spellComponent)` | Cast spell on inventory item. |
 | `sendSetTab(tabIndex)` | Switch to a UI tab by index. |
@@ -174,7 +182,13 @@ These methods resolve when server **acknowledges** them (not when effects comple
 | `waitForConnection(timeout)` | Wait for WebSocket connection to be established. |
 | `waitForReady(timeout)` | Wait for game state to be fully loaded and ready. |
 | `waitForStateChange(timeout)` | Wait for next state update from server. |
-| `waitForTicks(ticks)` | Wait for a specific number of server ticks (~420ms each). |
+| `waitForTicks(ticks)` | Wait for a specific number of server ticks (~300ms each). |
+
+### Other
+
+| Method | Description |
+|--------|-------------|
+| `isPrayerActive(prayer)` | Check if a specific prayer is currently active. |
 
 ---
 
@@ -270,43 +284,6 @@ interface CombatStyleState {
   currentStyle: number;
   weaponName: string;
   styles: CombatStyleOption[];
-}
-```
-
-### BotWorldState
-
-```typescript
-interface BotWorldState {
-  tick: number;
-  inGame: boolean;
-  player: PlayerState | null;
-  skills: SkillState[];
-  inventory: InventoryItem[];
-  equipment: InventoryItem[];
-  nearbyNpcs: NearbyNpc[];
-  nearbyPlayers: NearbyPlayer[];
-  nearbyLocs: NearbyLoc[];
-  groundItems: GroundItem[];
-  gameMessages: GameMessage[];
-  recentDialogs: DialogEntry[];
-  dialog: DialogState;
-  interface: InterfaceState;
-  shop: ShopState;
-  bank: BankState;
-  modalOpen: boolean;
-  modalInterface: number;
-  combatStyle?: CombatStyleState;
-  combatEvents: CombatEvent[];
-}
-```
-
-### ActionResult
-
-```typescript
-interface ActionResult {
-  success: boolean;
-  message: string;
-  data?: any; // Optional data payload (used by scan actions to return results)
 }
 ```
 
@@ -498,7 +475,7 @@ interface BankWithdrawResult {
   success: boolean;
   message: string;
   item?: InventoryItem;
-  reason?: 'bank_not_open' | 'timeout';
+  reason?: 'bank_not_open' | 'item_not_found' | 'timeout';
 }
 ```
 
@@ -509,5 +486,46 @@ interface UseItemOnLocResult {
   success: boolean;
   message: string;
   reason?: 'item_not_found' | 'loc_not_found' | 'cant_reach' | 'timeout';
+}
+```
+
+### UseItemOnNpcResult
+
+```typescript
+interface UseItemOnNpcResult {
+  success: boolean;
+  message: string;
+  reason?: 'item_not_found' | 'npc_not_found' | 'cant_reach' | 'timeout';
+}
+```
+
+### InteractLocResult
+
+```typescript
+interface InteractLocResult {
+  success: boolean;
+  message: string;
+  reason?: 'loc_not_found' | 'no_matching_option' | 'cant_reach' | 'timeout';
+}
+```
+
+### InteractNpcResult
+
+```typescript
+interface InteractNpcResult {
+  success: boolean;
+  message: string;
+  reason?: 'npc_not_found' | 'no_matching_option' | 'cant_reach' | 'timeout';
+}
+```
+
+### PickpocketResult
+
+```typescript
+interface PickpocketResult {
+  success: boolean;
+  message: string;
+  xpGained?: number;
+  reason?: 'npc_not_found' | 'no_pickpocket_option' | 'cant_reach' | 'stunned' | 'timeout';
 }
 ```

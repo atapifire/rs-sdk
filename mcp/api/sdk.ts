@@ -9,8 +9,6 @@
  * Or use directly if passed as parameter: sdk.getState(), sdk.sendWalk(), etc.
  */
 
-export { sdk } from './index';
-
 /**
  * Available methods on the sdk object:
  *
@@ -19,21 +17,25 @@ export { sdk } from './index';
  * - getConnectionState() - Get connection state ('connected', 'connecting', 'disconnected', 'reconnecting')
  *
  * == State Access (Synchronous) ==
- * - getState() - Get current bot world state (player, inventory, nearby entities, etc.)
- * - getStateAge() - Get milliseconds since last state update
+ * - getState(): BotWorldState - Full state snapshot. Shape: { tick, inGame, player: PlayerState | null, skills: SkillState[], inventory: InventoryItem[], equipment: InventoryItem[], nearbyNpcs: NearbyNpc[], nearbyPlayers: NearbyPlayer[], nearbyLocs: NearbyLoc[], groundItems: GroundItem[], gameMessages: GameMessage[], dialog: DialogState, shop: ShopState, bank: BankState, combatEvents: CombatEvent[] }
+ * - getStateAge(): number - Milliseconds since last state update
  *
- * == State Queries ==
- * - getInventory() - Get all inventory items
- * - findInventoryItem(pattern) - Find inventory item by name/id/pattern
- * - getNearbyNpcs() - Get all nearby NPCs
- * - findNearbyNpc(pattern) - Find NPC by name/id/pattern
- * - getNearbyLocs() - Get all nearby interactive locations (trees, rocks, doors, etc.)
- * - findNearbyLoc(pattern) - Find location by name/pattern
- * - getGroundItems() - Get all ground items
- * - findGroundItem(pattern) - Find ground item by name/pattern
- * - getSkill(name) - Get skill state (level, xp, etc.)
- * - getAllSkills() - Get all skills
- * - getEquippedItems() - Get worn equipment
+ * == State Queries (all return directly, NOT wrapped in objects) ==
+ * - getInventory(): InventoryItem[] - Returns array directly. Each item: { slot, id, name, count, optionsWithIndex }
+ * - findInventoryItem(pattern): InventoryItem | undefined - Find item by name/id/regex
+ * - getNearbyNpcs(): NearbyNpc[] - Returns array directly. Each NPC: { index, name, combatLevel, x, z, distance, hp, maxHp, healthPercent, inCombat, options }
+ * - findNearbyNpc(pattern): NearbyNpc | undefined - Find NPC by name/id/regex
+ * - getNearbyLocs(): NearbyLoc[] - Returns array directly. Each loc: { id, name, x, z, distance, options }
+ * - findNearbyLoc(pattern): NearbyLoc | undefined - Find location by name/regex
+ * - getGroundItems(): GroundItem[] - Returns array directly. Each: { id, name, count, x, z, distance }
+ * - findGroundItem(pattern): GroundItem | undefined - Find ground item by name/regex
+ * - getSkill(name): SkillState | undefined - Returns { name, level, baseLevel, experience }
+ * - getAllSkills(): SkillState[] - All skills
+ * - getEquippedItems(): InventoryItem[] - Worn equipment as array
+ *
+ * == Key Types ==
+ * PlayerState: { name, combatLevel, x, z, worldX, worldZ, level (floor 0-3), runEnergy, animId, combat: { inCombat, targetIndex, lastDamageTick } }
+ * NOTE: PlayerState has NO hp/health field. Use sdk.getSkill('hitpoints') for current HP.
  *
  * == Raw Actions (Promise-based, resolve on acknowledgment) ==
  * - sendWalk(x, z, running?) - Walk to coordinates

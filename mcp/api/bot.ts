@@ -8,8 +8,6 @@
  * Or use directly if passed as parameter: bot.chopTree(), bot.walkTo(), etc.
  */
 
-export { bot } from './index';
-
 /**
  * Available methods on the bot object:
  *

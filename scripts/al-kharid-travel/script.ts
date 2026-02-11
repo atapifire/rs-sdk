@@ -5,8 +5,8 @@
  */
 
 import { runScript, type ScriptContext } from '../../sdk/runner';
-import { generateSave, TestPresets } from '../../test/utils/save-generator';
-import { launchBotWithSDK } from '../../test/utils/browser';
+import { generateSave, TestPresets } from '../../sdk/test/utils/save-generator';
+import { launchBotWithSDK } from '../../sdk/test/utils/browser';
 
 // Helper to walk using raw sendWalk (bypasses broken pathfinding)
 async function rawWalkTo(ctx: ScriptContext, targetX: number, targetZ: number, timeout = 10000) {

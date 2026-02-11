@@ -168,6 +168,37 @@ const man = ctx.sdk.getState()?.nearbyNpcs.find(n => /^man$/i.test(n.name));
 - ~70% success rate at higher levels
 - Kebab sustain works well (bought 14, ate ~28 including starting food)
 
+
+### Baker's Stall Cake Stealing (Safe Spot)
+
+Stand on **(2669, 3310)** to steal from the **east** Baker's stall at (2667, 3310) without guards aggroing. This is a safe spot — guards don't path here.
+
+- **Only use the east stall** — the west stall at (2655, 3311) has no safe spot and guards will attack.
+- Stall id: 2561, steal opIndex: 2
+- Gives cakes, bread, chocolate slices (all heal HP)
+- Use cakes to sustain HP while pickpocketing knights/heroes
+
+```typescript
+// Safe spot cake stealing
+const SAFE_X = 2669, SAFE_Z = 3310;
+const STALL_X = 2667, STALL_Z = 3310;
+
+// Make sure you're on the safe spot
+await sdk.sendWalk(SAFE_X, SAFE_Z, true);
+await sdk.waitForTicks(5);
+
+// Steal - find stall by coords to avoid targeting wrong one
+const locs = sdk.getState()?.nearbyLocs ?? [];
+const eastStall = locs.find(l =>
+    l.x === STALL_X && l.z === STALL_Z &&
+    l.optionsWithIndex.some(o => /steal/i.test(o.text))
+);
+if (eastStall) {
+    await sdk.sendInteractLoc(STALL_X, STALL_Z, eastStall.id, 2);
+    await sdk.waitForTicks(4);
+}
+```
+
 ## Why Thieving for Money?
 
 Thieving requires no tools or equipment - making it ideal for:
